@@ -1,5 +1,7 @@
 <?php include('staff.php');
 $_SESSION['search'] = '';
+//
+//
 ?>
 <!DOCTYPE html>
 <html>

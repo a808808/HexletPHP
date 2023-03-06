@@ -1,10 +1,16 @@
 <?php
 require_once 'functions.php';
+
+$loggedin = '';
+$user = '';
+$number_type = '';
+$user_id = '';
+
 session_start();
 
 if (isset($_SESSION['user']))
 {
-    $user     = $_SESSION['user'];
+    $user = $_SESSION['user'];
     $user_id = $_SESSION['user_id'];
     $loggedin = TRUE;
     $userstr  = "Logged in as: $user";
@@ -15,21 +21,11 @@ if (!$loggedin) die("please <a href='signup.php'>sign up</a> or <a href='login.p
 if ($loggedin) echo "$user, you are logged in";
 echo "<div class='center'>for logout, <a href='logout.php'>click here</a>";
 
-
-
-$number_type = 'Без ярлыка';
 $action = 'view';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if(empty($_POST['staff_id']))
         $action = 'create';
     else $action = 'edit';
-//    if (!empty($_GET['edit'])) {
-////        $action = 'edit';
-////    } else if (!empty($_GET['del'])) {
-////        $action = 'delete';
-////    } else if (!empty($_GET['create'])) {
-////        $action = 'create';
-////    }
 }
 elseif (!empty($_GET['del']))
         $action = 'delete';
@@ -43,7 +39,7 @@ if(isset($_POST['q'])){
         $q = $_POST['q'];
     $q = '%' . $_POST['q'] . '%';
     $_SESSION['search'] = $q;
-    ;}
+    }
     echo $q;
 }
 
@@ -74,9 +70,11 @@ if ($action === 'create') {
             header('Location: index.php', true, 303);
             }
         } else {
-            $db = $pdo->prepare("INSERT INTO `staff` SET `first_name` = :first_name, `last_name` = :last_name, `user_id` = :user_id");
-            $db->execute(array('first_name' => $first_name, 'last_name' => $last_name, 'user_id' => $user_id));
+            queryMysql("INSERT INTO staff VALUES(NULL, '$user_id', '$first_name', '$last_name')");
+            //$db = $pdo->prepare("INSERT INTO `staff` SET `first_name` = :first_name, `last_name` = :last_name, `user_id` = :user_id");
+            //$db->execute(array('first_name' => $first_name, 'last_name' => $last_name, 'user_id' => $user_id));
             $last_id = $pdo->lastInsertId();
+            //$last_id = $record->lastInsertId();
             queryMysql("INSERT INTO phone VALUES(NULL, '$last_id', '$phone_number' , '$number_type' )");
             header('Location: index.php', true, 303);
             //die('<h4>Account created</h4>Please Log in.</div></body></html>');
@@ -96,7 +94,8 @@ if ($action === 'delete')
         queryMysql("DELETE FROM staff WHERE staff_id='$remove_id' AND user_id = '$user_id'");
     } else queryMysql("DELETE FROM phone WHERE staff_id='$remove_id' AND number = '$remove_number'");
 
-    header( 'Location: index.php', true, 303 );
+    if ($_SESSION['search'] == '') header( 'Location: index.php', true, 303 );
+    else header( 'Location: search.php', true, 303 );
 }
 
 if ($action === 'edit') {
@@ -114,10 +113,12 @@ if ($action === 'edit') {
         $error = 'Not all fields were entered<br><br>';
     else
     {
-        $db = $pdo->prepare("UPDATE `staff` SET `first_name` = :first_name, `last_name` = :last_name WHERE `staff_id` = :staff_id AND `user_id` = :user_id");
-        $db->execute(array('first_name' => $first_name, 'last_name' => $last_name, 'staff_id' => $staff_id, 'user_id' => $user_id));
-        $db = $pdo->prepare("UPDATE `phone` SET `number` = :number, `number_type` = :number_type WHERE `staff_id` = :staff_id AND `number` = :old_num");
-        $db->execute(array('number' => $phone_number, 'number_type' => $number_type , 'staff_id' => $staff_id, 'old_num' => $old_num));
+        queryMysql("UPDATE staff SET first_name = '$first_name', last_name = '$last_name' WHERE staff_id = '$staff_id' AND user_id = '$user_id'");
+        //$db = $pdo->prepare("UPDATE `staff` SET `first_name` = :first_name, `last_name` = :last_name WHERE `staff_id` = :staff_id AND `user_id` = :user_id");
+        //$db->execute(array('first_name' => $first_name, 'last_name' => $last_name, 'staff_id' => $staff_id, 'user_id' => $user_id));
+        queryMysql("UPDATE phone SET number = '$phone_number', number_type = '$number_type' WHERE staff_id = '$staff_id' AND number = $old_num");
+        //$db = $pdo->prepare("UPDATE `phone` SET `number` = :number, `number_type` = :number_type WHERE `staff_id` = :staff_id AND `number` = :old_num");
+        //$db->execute(array('number' => $phone_number, 'number_type' => $number_type , 'staff_id' => $staff_id, 'old_num' => $old_num));
         if ($_SESSION['search'] == '') header( 'Location: index.php', true, 303 );
         else header( 'Location: search.php', true, 303 );
         //die('<h4>Account created</h4>Please Log in.</div></body></html>');

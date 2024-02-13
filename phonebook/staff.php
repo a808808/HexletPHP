@@ -75,7 +75,7 @@ if ($action === 'create') {
             //$db->execute(array('first_name' => $first_name, 'last_name' => $last_name, 'user_id' => $user_id));
             $last_id = $pdo->lastInsertId();
             //$last_id = $record->lastInsertId();
-            queryMysql("INSERT INTO phone VALUES(NULL, '$last_id', '$phone_number' , '$number_type' )");
+            queryMysql("INSERT INTO phone VALUES(NULL, '$last_id', '$phone_number', '$number_type' )");
             header('Location: index.php', true, 303);
             //die('<h4>Account created</h4>Please Log in.</div></body></html>');
         }
